@@ -1,0 +1,31 @@
+{
+  "name": "start",
+  "version": "0.0.1",
+  "description": "Start all your apps using one command",
+  "author": "Chris Hicks <chrhicks@gmail.com>",
+  "contributors" : [
+    {
+      "name" : "Nathan Stilwell",
+      "email" : "nathanstilwell@gmail.com"
+    },{
+      "name" : "Jared Stilwell",
+      "email" : "jared.k.stilwell@gmail.com"
+    }
+  ],
+  "homepage": "https://github.com/upright-netizen/start",
+  "bin" : {
+    "start" : "./start"
+  },
+  "preferedGlobal" : "true",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/upright-netizen/start.git"
+  },
+  "dependencies": {
+    "commander" : "1.1.1"
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

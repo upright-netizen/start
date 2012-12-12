@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-var util = require('util'),
+
+var
+  program = require('commander'),
+  util = require('util'),
   spawn = require('child_process').spawn,
   fs = require('fs'),
   start_home = process.env['HOME'] + '/.start',
@@ -42,4 +45,27 @@ startApp = function (cmd) {
   proc.stdout.on('data', util.print);
 };
 
-init();
+program
+  .version('0.0.0');
+
+program
+  .command('setup [app]')
+  .description('Setup an app you\'d like to start')
+  .action(function (app) {
+    console.log('coming soon!');
+  });
+
+if (process.argv.length > 2 ) {
+//
+//  If commands where specified,
+//  then we'll parse those
+//
+  program.parse(process.argv);
+} else {
+//
+// If there no arguments, commands or switches
+// we'll just start
+//
+
+  init();
+}
