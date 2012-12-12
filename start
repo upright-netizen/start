@@ -1,0 +1,45 @@
+#!/usr/bin/env node
+var util = require('util'),
+  spawn = require('child_process').spawn,
+  fs = require('fs'),
+  start_home = process.env['HOME'] + '/.start',
+  appStarted = false,
+  apps,
+  init, parseFiles, parseApp, startApp;
+
+init = function () {
+  fs.readdir(start_home + '/apps', function (err, files) {
+    if (err) {
+      console.error('Could not read apps dir');
+      return;
+    }
+    parseFiles(files);
+  });
+};
+
+parseFiles = function (files) {
+  for (var i = 0; i < files.length; i++) {
+    parseApp(JSON.parse(fs.readFileSync(start_home + '/apps/' + files[i])));
+  }
+};
+
+parseApp = function (appJson) {
+  var realPath;
+
+  for (var i = 0; i < appJson.directories.length; i++) {
+    realPath = fs.realpathSync(appJson.directories[i]);
+    if (realPath === process.cwd()) {
+      startApp(appJson.start_command);
+    }
+  }
+};
+
+startApp = function (cmd) {
+  var proc;
+
+  proc = spawn(cmd);
+  proc.stdout.setEncoding('utf8');
+  proc.stdout.on('data', util.print);
+};
+
+init();
