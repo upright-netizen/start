@@ -6,7 +6,7 @@ start your apps using the same command
 Installation
 ----
 
-Make the start script available on your PATH
+    npm install -g start
 
 Configuration
 ----
