@@ -8,7 +8,9 @@ var
   start_home = process.env['HOME'] + '/.start',
   appStarted = false,
   apps,
-  init, parseFiles, parseApp, startApp, debug;
+  init, parseFiles, parseApp, startApp, debug,
+
+  setUpStartDirectory, findAppFile, parseAppFile;
 
 debug = function (message) {
   if (program.debug) {
@@ -16,30 +18,54 @@ debug = function (message) {
   }
 };
 
+setUpStartDirectory = function () {
+  console.log("Could not read .start directory");
+  return;
+
+  // if we can't find one, ask to set one up
+};
+
 init = function () {
-  fs.readdir(start_home + '/apps', function (err, files) {
+
+  fs.readdir(start_home, function (err, files) {
     if (err) {
-      console.error('Could not read apps dir');
-      return;
+      setUpStartDirectory();
     }
-    parseFiles(files);
+    findAppFile(files);
   });
 };
 
-parseFiles = function (files) {
 
-  debug('parsing files');
-
-  files.forEach(function( file ) {
-    debug('parsing ' + file);
-    parseApp(JSON.parse(fs.readFileSync(start_home + '/apps/' + file)));
+findAppFile = function (files) {
+  var foundIt = false;
+  files.forEach(function (file) {
+    if (file === 'apps.json') {
+      foundIt = true;
+      parseAppFile(file);
+    }
   });
+
+  if (!foundIt) {
+    console.log("Couldn't find apps.json");
+    program.prompt("Would you like to create one now [y/n]: ", function (answer) {
+      var a = answer.toLowerCase();
+      if (a === 'y') {
+        console.log('ok then.');
+      } else if (a === 'n'){
+        console.log('fine. be that way.');
+      }
+      process.stdin.destroy();
+    });
+  }
 };
 
-parseApp = function (appJson) {
-  var realPath;
 
-  appJson.directories.forEach(function( dir ) {
+parseAppFile = function (file) {
+  var
+    appJson = JSON.parse(fs.readFileSync(start_home + '/apps.json')),
+    realPath;
+
+  appJson.directories.forEach(function (dir) {
     realPath = fs.realpathSync( dir );
 
     debug("real path   : " + realPath);
@@ -52,6 +78,7 @@ parseApp = function (appJson) {
   });
 };
 
+
 startApp = function (cmd) {
   var proc;
   debug("running : " + cmd);
@@ -61,6 +88,7 @@ startApp = function (cmd) {
   proc.stderr.on('data', util.print);
 };
 
+
 program
   .version('0.0.0')
   .option('-d, --debug', 'logs debug statements')
@@ -69,3 +97,6 @@ program
 
 
 init();
+
+
+
