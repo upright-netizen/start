@@ -10,7 +10,76 @@ var
   apps,
   init, parseFiles, parseApp, startApp, debug,
 
-  setUpStartDirectory, findAppFile, parseAppFile;
+  setUpStartDirectory, findAppFile, parseAppFile,
+
+  Config;
+
+/*
+  .oooooo.                          .o88o.  o8o
+ d8P'  `Y8b                         888 `"  `"'
+888           .ooooo.  ooo. .oo.   o888oo  oooo   .oooooooo
+888          d88' `88b `888P"Y88b   888    `888  888' `88b
+888          888   888  888   888   888     888  888   888
+`88b    ooo  888   888  888   888   888     888  `88bod8P'
+ `Y8bood8P'  `Y8bod8P' o888o o888o o888o   o888o `8oooooo.
+                                                 d"     YD
+                                                 "Y88888P'
+*/
+Config = (function () {
+  var init, createNewConfig, writeConfig, getApps,
+
+    configRef,
+
+    appsJsonFile = start_home + '/apps.json',
+    blankConfig = {
+      apps : [],
+      aliases : {}
+    };
+
+  /**
+   * If this is the first time the app has been run, create
+   * ~/.start and ~/.start/apps.json
+   */
+  init = function () {
+    // Make sure start's home directory exists
+    if (!fs.existsSync(start_home)) {
+      console.log('Initializing start for the first time. Creating config at [' + appsJsonFile + ']');
+      fs.mkdirSync(start_home);
+      configRef = blankConfig;
+      writeConfig();
+    } else {
+      configRef = JSON.parse(fs.readFileSync(appsJsonFile));
+    }
+  };
+
+  writeConfig = function () {
+    if (configRef) {
+      fs.writeFileSync(appsJsonFile, JSON.stringify(configRef));
+    }
+  };
+
+  getApps = function () {
+    return configRef.apps;
+  };
+
+  return {
+    init    : init,
+    getApps : getApps
+  };
+}());
+
+/*
+
+ooo        ooooo            o8o                       .o.
+`88.       .888'            `"'                      .888.
+ 888b     d'888   .oooo.   oooo  ooo. .oo.          .8"888.     oo.ooooo.  oo.ooooo.
+ 8 Y88. .P  888  `P  )88b  `888  `888P"Y88b        .8' `888.     888' `88b  888' `88b
+ 8  `888'   888   .oP"888   888   888   888       .88ooo8888.    888   888  888   888
+ 8    Y     888  d8(  888   888   888   888      .8'     `888.   888   888  888   888
+o8o        o888o `Y888""8o o888o o888o o888o    o88o     o8888o  888bod8P'  888bod8P'
+                                                                 888        888
+                                                                o888o      o888o
+*/
 
 debug = function (message) {
   if (program.debug) {
@@ -26,57 +95,104 @@ setUpStartDirectory = function () {
 };
 
 init = function () {
+  Config.init();
 
-  fs.readdir(start_home, function (err, files) {
-    if (err) {
-      setUpStartDirectory();
-    }
-    findAppFile(files);
-  });
+  parseApps();
+
+  // fs.readdir(start_home, function (err, files) {
+  //   if (err) {
+  //     setUpStartDirectory();
+  //   }
+  //   findAppFile(files);
+  // });
 };
 
 
-findAppFile = function (files) {
+parseApps = function () {
   var foundIt = false;
-  files.forEach(function (file) {
-    if (file === 'apps.json') {
-      foundIt = true;
-      parseAppFile(file);
-    }
+
+  Config.getApps().forEach(function (app) {
+    app.directories.forEach(function (dir) {
+      realPath = fs.realpathSync( dir );
+
+      debug("real path   : " + realPath);
+      debug("current dir : " + process.cwd());
+
+      if (realPath === process.cwd()) {
+        foundIt = true;
+        debug("starting app");
+        startApp(appJson.start_command);
+      }
+    });
   });
 
   if (!foundIt) {
-    console.log("Couldn't find apps.json");
-    program.prompt("Would you like to create one now [y/n]: ", function (answer) {
+    console.log("I don't know how to start an app from this directory.");
+    program.prompt("Would you like to add a new app now? [y/n]: ", function (answer) {
       var a = answer.toLowerCase();
+
       if (a === 'y') {
-        console.log('ok then.');
-      } else if (a === 'n'){
-        console.log('fine. be that way.');
+        program.prompt("Home directory of the app? [" + process.cwd() + "]: ", function (homeDir) {
+          var finalHomeDir = process.cwd();
+
+          if (homeDir !== "") {
+            finalHomeDir = homeDir;
+          }
+
+          program.prompt("Start command for this app: ", function (startCmd) {
+            process.stdin.destroy();
+            debug("Creating app located at [" + finalHomeDir + "] using the start command [" + startCmd + "]");
+          });
+        });
+      } else {
+        process.stdin.destroy();
       }
-      process.stdin.destroy();
     });
   }
-};
+}
+
+// findAppFile = function (files) {
+//   var foundIt = false;
+//   files.forEach(function (file) {
+//     if (file === 'apps.json') {
+//       foundIt = true;
+//       parseAppFile(file);
+//     }
+//   });
+
+//   if (!foundIt) {
+//     console.log("Couldn't find apps.json");
+//     program.prompt("Would you like to create one now [y/n]: ", function (answer) {
+//       var a = answer.toLowerCase();
+//       if (a === 'y') {
+//         console.log('ok then.');
+//         Config.createNewConfig();
+//       } else if (a === 'n'){
+//         console.log('fine. be that way.');
+//       }
+//       process.stdin.destroy();
+//     });
+//   }
+// };
 
 
-parseAppFile = function (file) {
-  var
-    appJson = JSON.parse(fs.readFileSync(start_home + '/apps.json')),
-    realPath;
+// parseAppFile = function (file) {
+//   var
+//     appJson = JSON.parse(fs.readFileSync(start_home + '/apps.json')),
+//     realPath;
 
-  appJson.directories.forEach(function (dir) {
-    realPath = fs.realpathSync( dir );
+//   appJson.directories.forEach(function (dir) {
+//     realPath = fs.realpathSync( dir );
 
-    debug("real path   : " + realPath);
-    debug("current dir : " + process.cwd());
+//     debug("real path   : " + realPath);
+//     debug("current dir : " + process.cwd());
 
-    if (realPath === process.cwd()) {
-      debug("starting app");
-      startApp(appJson.start_command);
-    }
-  });
-};
+//     if (realPath === process.cwd()) {
+//       debug("starting app");
+//       startApp(appJson.start_command);
+//     }
+//   });
+// };
 
 
 startApp = function (cmd) {
