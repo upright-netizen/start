@@ -15,18 +15,18 @@ var
   Config;
 
 /*
-  .oooooo.                          .o88o.  o8o
- d8P'  `Y8b                         888 `"  `"'
-888           .ooooo.  ooo. .oo.   o888oo  oooo   .oooooooo
-888          d88' `88b `888P"Y88b   888    `888  888' `88b
-888          888   888  888   888   888     888  888   888
-`88b    ooo  888   888  888   888   888     888  `88bod8P'
- `Y8bood8P'  `Y8bod8P' o888o o888o o888o   o888o `8oooooo.
-                                                 d"     YD
-                                                 "Y88888P'
+      .oooooo.                          .o88o.  o8o
+     d8P'  `Y8b                         888 `"  `"'
+    888           .ooooo.  ooo. .oo.   o888oo  oooo   .oooooooo
+    888          d88' `88b `888P"Y88b   888    `888  888' `88b
+    888          888   888  888   888   888     888  888   888
+    `88b    ooo  888   888  888   888   888     888  `88bod8P'
+     `Y8bood8P'  `Y8bod8P' o888o o888o o888o   o888o `8oooooo.
+                                                     d"     YD
+                                                     "Y88888P'
 */
 Config = (function () {
-  var init, createNewConfig, writeConfig, getApps,
+  var init, createNewConfig, writeConfig, getApps, addApp,
 
     configRef,
 
@@ -62,28 +62,38 @@ Config = (function () {
     return configRef.apps;
   };
 
+  addApp = function (dir, command) {
+    configRef.apps.push({
+      "command" : command,
+      "directories" : [ dir ]
+    });
+
+    writeConfig();
+  };
+
   return {
     init    : init,
-    getApps : getApps
+    getApps : getApps,
+    addApp : addApp
   };
 }());
 
 /*
 
-ooo        ooooo            o8o                       .o.
-`88.       .888'            `"'                      .888.
- 888b     d'888   .oooo.   oooo  ooo. .oo.          .8"888.     oo.ooooo.  oo.ooooo.
- 8 Y88. .P  888  `P  )88b  `888  `888P"Y88b        .8' `888.     888' `88b  888' `88b
- 8  `888'   888   .oP"888   888   888   888       .88ooo8888.    888   888  888   888
- 8    Y     888  d8(  888   888   888   888      .8'     `888.   888   888  888   888
-o8o        o888o `Y888""8o o888o o888o o888o    o88o     o8888o  888bod8P'  888bod8P'
-                                                                 888        888
-                                                                o888o      o888o
+    ooo        ooooo            o8o                       .o.
+    `88.       .888'            `"'                      .888.
+     888b     d'888   .oooo.   oooo  ooo. .oo.          .8"888.     oo.ooooo.  oo.ooooo.
+     8 Y88. .P  888  `P  )88b  `888  `888P"Y88b        .8' `888.     888' `88b  888' `88b
+     8  `888'   888   .oP"888   888   888   888       .88ooo8888.    888   888  888   888
+     8    Y     888  d8(  888   888   888   888      .8'     `888.   888   888  888   888
+    o8o        o888o `Y888""8o o888o o888o o888o    o88o     o8888o  888bod8P'  888bod8P'
+                                                                     888        888
+                                                                    o888o      o888o
 */
 
-debug = function (message) {
+debug = function (message, method) {
   if (program.debug) {
-    console.log(message);
+    console[(method) ? method : 'log'](message);
   }
 };
 
@@ -96,15 +106,7 @@ setUpStartDirectory = function () {
 
 init = function () {
   Config.init();
-
   parseApps();
-
-  // fs.readdir(start_home, function (err, files) {
-  //   if (err) {
-  //     setUpStartDirectory();
-  //   }
-  //   findAppFile(files);
-  // });
 };
 
 
@@ -121,7 +123,7 @@ parseApps = function () {
       if (realPath === process.cwd()) {
         foundIt = true;
         debug("starting app");
-        startApp(appJson.start_command);
+        startApp(app.command);
       }
     });
   });
@@ -142,6 +144,7 @@ parseApps = function () {
           program.prompt("Start command for this app: ", function (startCmd) {
             process.stdin.destroy();
             debug("Creating app located at [" + finalHomeDir + "] using the start command [" + startCmd + "]");
+            Config.addApp(finalHomeDir, startCmd);
           });
         });
       } else {
@@ -149,51 +152,7 @@ parseApps = function () {
       }
     });
   }
-}
-
-// findAppFile = function (files) {
-//   var foundIt = false;
-//   files.forEach(function (file) {
-//     if (file === 'apps.json') {
-//       foundIt = true;
-//       parseAppFile(file);
-//     }
-//   });
-
-//   if (!foundIt) {
-//     console.log("Couldn't find apps.json");
-//     program.prompt("Would you like to create one now [y/n]: ", function (answer) {
-//       var a = answer.toLowerCase();
-//       if (a === 'y') {
-//         console.log('ok then.');
-//         Config.createNewConfig();
-//       } else if (a === 'n'){
-//         console.log('fine. be that way.');
-//       }
-//       process.stdin.destroy();
-//     });
-//   }
-// };
-
-
-// parseAppFile = function (file) {
-//   var
-//     appJson = JSON.parse(fs.readFileSync(start_home + '/apps.json')),
-//     realPath;
-
-//   appJson.directories.forEach(function (dir) {
-//     realPath = fs.realpathSync( dir );
-
-//     debug("real path   : " + realPath);
-//     debug("current dir : " + process.cwd());
-
-//     if (realPath === process.cwd()) {
-//       debug("starting app");
-//       startApp(appJson.start_command);
-//     }
-//   });
-// };
-
+};
 
 startApp = function (cmd) {
   var proc;
