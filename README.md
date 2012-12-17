@@ -8,24 +8,36 @@ Installation
 
     npm install -g start
 
-Configuration
+How to use
 ----
 
-*start* expects configuration files to be located at:
+	> cd /path/to/your/app;
+	> start
+	
+*if you are running `start` for the first time, it will prompt you about what to do*
 
-    ~/.start/apps
-    
-In this directory add json files that describe how to start an app or type of application.
+Behind the scenes
+----
 
-    {
-      "start_command" : "bin/startup.sh",
-      "directories" : [
-        "/projects/someApp"
-      ]
-    }
-    
-**directories** represents the places where **start_command** will be used to start the application. In other words to use *start*, you could use this command: 
+*start* creates a configuration file located at:
 
-    cd /projects/someApp && start
+    ~/.start/apps.json
     
-Add as many config files as you need for all the apps you have to run everyday.
+This file describe how to start an app or type of application.
+
+	{
+    	"apps": [
+        	{
+            	"command": "node app.js",
+	            "directories": [
+    	            "/Users/nstilwell/Code/theMuppetShow"
+        	    ]
+        	}
+	    ],
+    	"aliases": {}
+	}    
+
+**command** is the command to run  
+**directories** is where the command is run  
+
+Genius, I know
