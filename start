@@ -5,103 +5,17 @@ var
   util = require('util'),
   exec = require('child_process').exec,
   fs = require('fs'),
-  start_home = process.env['HOME'] + '/.start',
   appStarted = false,
   apps,
   init, parseFiles, parseApp, startApp, debug,
 
-  setUpStartDirectory, findAppFile, parseAppFile,
+  Config = require(__dirname + '/lib/config');
 
-  Config;
-
-/*
-      .oooooo.                          .o88o.  o8o
-     d8P'  `Y8b                         888 `"  `"'
-    888           .ooooo.  ooo. .oo.   o888oo  oooo   .oooooooo
-    888          d88' `88b `888P"Y88b   888    `888  888' `88b
-    888          888   888  888   888   888     888  888   888
-    `88b    ooo  888   888  888   888   888     888  `88bod8P'
-     `Y8bood8P'  `Y8bod8P' o888o o888o o888o   o888o `8oooooo.
-                                                     d"     YD
-                                                     "Y88888P'
-*/
-Config = (function () {
-  var init, createNewConfig, writeConfig, getApps, addApp,
-
-    configRef,
-
-    appsJsonFile = start_home + '/apps.json',
-    blankConfig = {
-      apps : [],
-      aliases : {}
-    };
-
-  /**
-   * If this is the first time the app has been run, create
-   * ~/.start and ~/.start/apps.json
-   */
-  init = function () {
-    // Make sure start's home directory exists
-    if (!fs.existsSync(start_home)) {
-      console.log('Initializing start for the first time. Creating config at [' + appsJsonFile + ']');
-      fs.mkdirSync(start_home);
-      configRef = blankConfig;
-      writeConfig();
-    } else {
-      configRef = JSON.parse(fs.readFileSync(appsJsonFile));
-    }
-  };
-
-  writeConfig = function () {
-    if (configRef) {
-      fs.writeFileSync(appsJsonFile, JSON.stringify(configRef));
-    }
-  };
-
-  getApps = function () {
-    return configRef.apps;
-  };
-
-  addApp = function (dir, command) {
-    configRef.apps.push({
-      "command" : command,
-      "directories" : [ dir ]
-    });
-
-    writeConfig();
-  };
-
-  return {
-    init    : init,
-    getApps : getApps,
-    addApp : addApp
-  };
-}());
-
-/*
-
-    ooo        ooooo            o8o                       .o.
-    `88.       .888'            `"'                      .888.
-     888b     d'888   .oooo.   oooo  ooo. .oo.          .8"888.     oo.ooooo.  oo.ooooo.
-     8 Y88. .P  888  `P  )88b  `888  `888P"Y88b        .8' `888.     888' `88b  888' `88b
-     8  `888'   888   .oP"888   888   888   888       .88ooo8888.    888   888  888   888
-     8    Y     888  d8(  888   888   888   888      .8'     `888.   888   888  888   888
-    o8o        o888o `Y888""8o o888o o888o o888o    o88o     o8888o  888bod8P'  888bod8P'
-                                                                     888        888
-                                                                    o888o      o888o
-*/
 
 debug = function (message, method) {
   if (program.debug) {
     console[(method) ? method : 'log'](message);
   }
-};
-
-setUpStartDirectory = function () {
-  console.log("Could not read .start directory");
-  return;
-
-  // if we can't find one, ask to set one up
 };
 
 init = function () {
@@ -117,7 +31,7 @@ parseApps = function () {
     app.directories.forEach(function (dir) {
       realPath = fs.realpathSync( dir );
 
-      debug("real path   : " + realPath);
+      debug("path found : " + realPath);
       debug("current dir : " + process.cwd());
 
       if (realPath === process.cwd()) {
@@ -142,11 +56,18 @@ parseApps = function () {
           }
 
           program.prompt("Start command for this app: ", function (startCmd) {
-            process.stdin.destroy();
             debug("Creating app located at [" + finalHomeDir + "] using the start command [" + startCmd + "]");
             Config.addApp(finalHomeDir, startCmd);
-          });
-        });
+
+            program.prompt("Start now? [y/n]: ", function (answer) {
+              var a = answer.toLowerCase();
+              if (a === 'y') {
+                startApp(startCmd);
+              }
+              process.stdin.destroy();
+            }); // start now
+          }); // start command
+        }); // home directory
       } else {
         process.stdin.destroy();
       }
@@ -163,12 +84,10 @@ startApp = function (cmd) {
   proc.stderr.on('data', util.print);
 };
 
-
 program
   .version('0.0.0')
   .option('-d, --debug', 'logs debug statements')
   .parse(process.argv);
-
 
 
 init();
