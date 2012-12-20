@@ -98,13 +98,13 @@ if (program.list) {
 
   apps = Config.getApps();
 
+  console.log('Applications managed by start');
+  console.log('---------------------------');
   apps.forEach(function (app) {
-    console.log(app.directories[0]);
-    console.log(app.command);
-    console.log('---------------------------');
+    console.log(app.directories[0] + ' - ' + app.command);
   });
 
-  console.log(apps.length + ' app(s) bound.');
+  console.log(apps.length + ' app(s) found.');
 } else {
   init();
 }
