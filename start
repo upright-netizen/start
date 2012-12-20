@@ -87,10 +87,27 @@ startApp = function (cmd) {
 program
   .version('0.0.0')
   .option('-d, --debug', 'logs debug statements')
+  .option('-l, --list', 'list the apps start knows about')
   .parse(process.argv);
 
 
-init();
+if (program.list) {
+  var apps;
+
+  Config.init();
+
+  apps = Config.getApps();
+
+  console.log('Applications managed by start');
+  console.log('---------------------------');
+  apps.forEach(function (app) {
+    console.log(app.directories[0] + ' - ' + app.command);
+  });
+
+  console.log(apps.length + ' app(s) found.');
+} else {
+  init();
+}
 
 
 
