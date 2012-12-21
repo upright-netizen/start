@@ -7,7 +7,7 @@ var
   fs = require('fs'),
   appStarted = false,
   apps,
-  init, parseFiles, parseApp, startApp, debug,
+  init, parseFiles, parseApp, startApp, listApps, removeApp, debug,
 
   Config = require(__dirname + '/lib/config');
 
@@ -19,7 +19,6 @@ debug = function (message, method) {
 };
 
 init = function () {
-  Config.init();
   parseApps();
 };
 
@@ -75,6 +74,40 @@ parseApps = function () {
   }
 };
 
+listApps = function () {
+  var apps;
+
+  apps = Config.getApps();
+
+  console.log('Applications managed by start');
+  console.log('---------------------------');
+  apps.forEach(function (app) {
+    console.log(app.directories[0] + ' - ' + app.command);
+  });
+
+  console.log(apps.length + ' app(s) found.');
+};
+
+removeApp = function () {
+  var currentApp = Config.getApp(process.cwd());
+
+  if (currentApp) {
+    console.log("Found app for current directory.");
+    console.log(currentApp.directories[0] + ' - ' + currentApp.command);
+    program.prompt("Are you sure you want to remove this app? [y/n]: ", function (answer) {
+      var a = answer.toLowerCase();
+      if (a === 'y') {
+        console.log("removing app....");
+        Config.removeApp(process.cwd());
+      }
+      process.stdin.destroy();
+    });
+  } else {
+    console.log("There is no app configured for this directory. Type 'start' to add one here.");
+  }
+
+};
+
 startApp = function (cmd) {
   var proc;
   debug("running : " + cmd);
@@ -88,24 +121,16 @@ program
   .version('0.0.0')
   .option('-d, --debug', 'logs debug statements')
   .option('-l, --list', 'list the apps start knows about')
+  .option('-r, --remove', 'remove the start entry for the current directory')
   .parse(process.argv);
 
+Config.init();
 
 if (program.list) {
-  var apps;
-
-  Config.init();
-
-  apps = Config.getApps();
-
-  console.log('Applications managed by start');
-  console.log('---------------------------');
-  apps.forEach(function (app) {
-    console.log(app.directories[0] + ' - ' + app.command);
-  });
-
-  console.log(apps.length + ' app(s) found.');
-} else {
+  listApps();
+} else if(program.remove) {
+  removeApp();
+}else {
   init();
 }
 
