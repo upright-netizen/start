@@ -113,10 +113,13 @@ startApp = function (cmd) {
   debug("running : " + cmd);
   proc = spawn(cmd, [], {detached: true});
   proc.stdout.setEncoding('utf8');
-  proc.stdout.on('data', console.log);
-  proc.stderr.on('data', console.log);
+  proc.stdout.on('data', writeStdOut);
+  proc.stderr.on('data', writeStdOut);
 };
 
+writeStdOut = function (msg) {
+  process.stdout.write(msg);
+};
 
 program
   .version('0.0.0')
