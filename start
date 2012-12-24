@@ -3,7 +3,7 @@
 var
   program = require('commander'),
   util = require('util'),
-  exec = require('child_process').exec,
+  spawn = require('child_process').spawn,
   fs = require('fs'),
   appStarted = false,
   apps,
@@ -111,11 +111,12 @@ removeApp = function () {
 startApp = function (cmd) {
   var proc;
   debug("running : " + cmd);
-  proc = exec(cmd);
+  proc = spawn(cmd, [], {detached: true});
   proc.stdout.setEncoding('utf8');
-  proc.stdout.on('data', util.print);
-  proc.stderr.on('data', util.print);
+  proc.stdout.on('data', console.log);
+  proc.stderr.on('data', console.log);
 };
+
 
 program
   .version('0.0.0')
