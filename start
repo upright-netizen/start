@@ -28,6 +28,12 @@ parseApps = function () {
 
   Config.getApps().forEach(function (app) {
     app.directories.forEach(function (dir) {
+      if (!fs.existsSync(dir)) {
+        console.warn("Directory [" + dir + "] does not exist. Expected to find an app here. Removing it to keep configuration clean.");
+        Config.removeApp(dir);
+        return;
+      }
+
       realPath = fs.realpathSync( dir );
 
       debug("path found : " + realPath);
