@@ -147,7 +147,7 @@ Config.init();
 
 if (program.list) {
   listApps();
-} else if(program.remove) {
+} else if (program.remove) {
   removeApp();
 } else {
   init();
