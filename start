@@ -115,12 +115,14 @@ removeApp = function () {
 };
 
 startApp = function (cmd) {
-  var proc,
-    args = cmd.split(" ").slice(1);
+  var proc;
+  var command = cmd.split(" ")[0];
+  var args = cmd.split(" ").slice(1);
 
-  debug("running : " + cmd);
+  debug("running : " + command);
+  debug("with args : " + args);
 
-  proc = spawn(cmd, args, {detached: true});
+  proc = spawn(command, args, {detached: true});
   proc.stdout.setEncoding('utf8');
   proc.stdout.on('data', writeStdOut);
   proc.stderr.on('data', writeStdOut);
