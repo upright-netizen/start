@@ -19,11 +19,6 @@ debug = function (message, method) {
 };
 
 init = function () {
-  parseApps();
-};
-
-
-parseApps = function () {
   var foundIt = false;
 
   Config.getApps().forEach(function (app) {
