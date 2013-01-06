@@ -115,12 +115,22 @@ removeApp = function () {
 };
 
 startApp = function (cmd) {
-  var proc;
+  var proc,
+    args = cmd.split(" ").slice(1);
+
   debug("running : " + cmd);
-  proc = spawn(cmd, [], {detached: true});
+
+  proc = spawn(cmd, args, {detached: true});
   proc.stdout.setEncoding('utf8');
   proc.stdout.on('data', writeStdOut);
   proc.stderr.on('data', writeStdOut);
+
+  // Listen for Ctrl + C from command line; kill the child process.
+  process.on('SIGINT', function () {
+    debug('Got SIGINT.  Terminating app.');
+    proc.kill();
+    process.exit(0);
+  });
 };
 
 writeStdOut = function (msg) {
