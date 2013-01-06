@@ -27,24 +27,26 @@ parseApps = function () {
   var foundIt = false;
 
   Config.getApps().forEach(function (app) {
-    app.directories.forEach(function (dir) {
-      if (!fs.existsSync(dir)) {
-        console.warn("Directory [" + dir + "] does not exist. Expected to find an app here. Removing it to keep configuration clean.");
-        Config.removeApp(dir);
-        return;
-      }
+    if (foundIt) return;
 
-      realPath = fs.realpathSync( dir );
+    var dir = app.directory;
 
-      debug("path found : " + realPath);
-      debug("current dir : " + process.cwd());
+    if (!fs.existsSync(dir)) {
+      console.warn("Directory [" + dir + "] does not exist. Expected to find an app here. Removing it to keep configuration clean.");
+      Config.removeApp(dir);
+      return;
+    }
 
-      if (realPath === process.cwd()) {
-        foundIt = true;
-        debug("starting app");
-        startApp(app.command);
-      }
-    });
+    realPath = fs.realpathSync( dir );
+
+    debug("path found : " + realPath);
+    debug("current dir : " + process.cwd());
+
+    if (realPath === process.cwd()) {
+      foundIt = true;
+      debug("starting app");
+      startApp(app.command);
+    }
   });
 
   if (!foundIt) {
@@ -88,7 +90,7 @@ listApps = function () {
   console.log('Applications managed by start');
   console.log('---------------------------');
   apps.forEach(function (app) {
-    console.log(app.directories[0] + ' - ' + app.command);
+    console.log(app.directory + ' - ' + app.command);
   });
 
   console.log(apps.length + ' app(s) found.');
@@ -99,7 +101,7 @@ removeApp = function () {
 
   if (currentApp) {
     console.log("Found app for current directory.");
-    console.log(currentApp.directories[0] + ' - ' + currentApp.command);
+    console.log(currentApp.directory + ' - ' + currentApp.command);
     program.prompt("Are you sure you want to remove this app? [y/n]: ", function (answer) {
       var a = answer.toLowerCase();
       if (a === 'y') {
@@ -152,7 +154,7 @@ if (program.list) {
   listApps();
 } else if(program.remove) {
   removeApp();
-}else {
+} else {
   init();
 }
 
