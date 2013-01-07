@@ -1,6 +1,6 @@
 {
   "name": "start",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Start all your apps using one command",
   "author": "Chris Hicks <chrhicks@gmail.com>",
   "contributors" : [
