@@ -1,10 +1,11 @@
+# Deprecated! Do not use
+
+> I have unpublished this from npm but am keeping it here for historic reasons. This was a novel idea, but soon after I discovered [npm scripts](https://docs.npmjs.com/misc/scripts) which are a way better idea.
+
 start
 =====
 start your apps using the same command
 
-Installation
-----
-    npm install -g start
 
 How to use
 ----
